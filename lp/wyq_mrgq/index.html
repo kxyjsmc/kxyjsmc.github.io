@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日歌曲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#ffffff',
+                        secondary: '#f8fafc',
+                        accent: '#165DFF',
+                        textPrimary: '#1e293b',
+                        textSecondary: '#64748b',
+                        borderColor: '#e2e8f0',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-primary text-textPrimary">
+    <div class="max-w-2xl mx-auto px-4 py-8">
+        <!-- 页面头部 -->
+        <header class="text-center mb-10">
+            <h1 class="text-3xl font-bold mb-2">每日歌曲</h1>
+            <p class="text-textSecondary" id="system-date"></p>
+        </header>
+
+        <!-- 第一板块：今日歌曲 -->
+        <section class="mb-10">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-music text-accent mr-2"></i>今日歌曲
+            </h2>
+            <div class="bg-secondary rounded-2xl p-6 border border-borderColor card-shadow">
+                <p class="text-textSecondary text-sm mb-2">今日最新入库歌曲</p>
+                <h3 class="text-2xl font-bold" id="today-song">加载中...</h3>
+                <p class="text-textSecondary text-sm mt-3" id="song-release-date"></p>
+            </div>
+        </section>
+
+        <!-- 第二板块：随机推荐 -->
+        <section class="mb-10">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-random text-accent mr-2"></i>随机推荐
+            </h2>
+            <div class="bg-secondary rounded-2xl p-6 border border-borderColor card-shadow">
+                <p class="text-textSecondary text-sm mb-2">从全库随机发现好歌</p>
+                <h3 class="text-2xl font-bold mb-2" id="random-song">点击按钮获取推荐</h3>
+                <p class="text-textSecondary text-sm mb-4" id="random-song-date"></p>
+                <button id="refresh-random" class="bg-accent text-white px-5 py-2 rounded-full font-medium hover:bg-accent/90 transition-all">
+                    换一首
+                </button>
+            </div>
+        </section>
+
+        <!-- 第三板块：歌曲库 -->
+        <section>
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-database text-accent mr-2"></i>歌曲库
+            </h2>
+            <div class="bg-secondary rounded-2xl p-4 border border-borderColor card-shadow">
+                <ol class="divide-y divide-borderColor" id="song-library-list">
+                    <li class="py-3 text-center text-textSecondary">加载歌曲库...</li>
+                </ol>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // 你自定义的内置歌曲库
+        const songLibrary = [
+            { name: "gone", date: "2026-07-29" },
+            { name: "Illusion daytime", date: "2026-07-28" },
+            { name: "sacred play secret place", date: "2026-07-27" },
+            { name: "funk caravan", date: "2026-07-25" },
+            { name: "color_x", date: "2026-07-24" },
+            { name: "somewhere only we know", date: "2026-07-23" },
+            { name: "sunny jim", date: "2026-07-22" },
+            { name: "free lucky", date: "2026-07-21" },
+            { name: "let her go", date: "2026-07-20" },
+            { name: "his theme", date: "2026-07-19" },
+            { name: "占位符(不是歌啊)", date: "2038-01-19" }
+        ];
+
+        // 获取当前日期并格式化
+        const now = new Date();
+        const todayStr = now.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+        document.getElementById('system-date').textContent = todayStr;
+
+        // 1. 今日歌曲：自动取库中日期最新的歌曲
+        function getLatestSong() {
+            // 排除占位符歌曲，只在有效歌曲中筛选最新的
+            const validSongs = songLibrary.filter(song => song.name !== "占位符(不是歌啊)");
+            // 按日期倒序排序，最新的排在最前面
+            const sortedSongs = [...validSongs].sort((a, b) => new Date(b.date) - new Date(a.date));
+            return sortedSongs[0];
+        }
+
+        // 2. 随机推荐功能，排除占位符非歌曲内容
+        function showRandomSong() {
+            const validSongs = songLibrary.filter(song => song.name !== "占位符(不是歌啊)");
+            const randomIndex = Math.floor(Math.random() * validSongs.length);
+            const randomSong = validSongs[randomIndex];
+            document.getElementById('random-song').textContent = randomSong.name;
+            document.getElementById('random-song-date').textContent = `入库日期：${randomSong.date}`;
+        }
+
+        // 3. 渲染完整歌曲库列表，按日期倒序展示
+        function renderSongLibrary() {
+            const libraryList = document.getElementById('song-library-list');
+            libraryList.innerHTML = '';
+
+            const validSongs = songLibrary.filter(song => song.name !== "占位符(不是歌啊)");
+            // 按入库日期倒序排列展示
+            const sortedSongs = [...validSongs].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            sortedSongs.forEach(song => {
+                const li = document.createElement('li');
+                li.className = 'py-3 flex justify-between items-center';
+                li.innerHTML = `
+                    <span class="text-textSecondary">${song.date}</span>
+                    <span class="font-medium">${song.name}</span>
+                `;
+                libraryList.appendChild(li);
+            });
+        }
+
+        // 初始化今日歌曲展示
+        function initTodaySong() {
+            const latestSong = getLatestSong();
+            document.getElementById('today-song').textContent = latestSong.name;
+            document.getElementById('song-release-date').textContent = `入库日期：${latestSong.date}`;
+        }
+
+        // 页面加载完成后初始化所有功能
+        window.onload = () => {
+            initTodaySong();
+            showRandomSong();
+            renderSongLibrary();
+            // 绑定随机推荐按钮事件
+            document.getElementById('refresh-random').addEventListener('click', showRandomSong);
+        };
+    </script>
+</body>
+</html>
