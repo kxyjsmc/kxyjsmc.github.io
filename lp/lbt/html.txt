@@ -1,0 +1,30 @@
+注意引用：css:  https://kxyjsmc.github.io/lp/lbt/lbt.css
+js:  https://kxyjsmc.github.io/lp/lbt/lbt.js
+
+
+    <section class="轮播图">
+        <div class="轮播容器">
+            <div class="轮播项 active">
+                <img src="图片地址1" alt="轮播图1">
+            </div>
+            <div class="轮播项">
+                <img src="图片地址2" alt="轮播图2">
+            </div>
+            <div class="轮播项">
+                <img src="图片地址3" alt="轮播图3">
+            </div>
+            <div class="轮播项">
+                <img src="图片地址4" alt="轮播图4">
+            </div>
+        </div>
+        <!-- 轮播指示器 -->
+        <div class="轮播指示器">
+            <span class="指示器点 active"></span>
+            <span class="指示器点"></span>
+            <span class="指示器点"></span>
+            <span class="指示器点"></span>
+        </div>
+        <!-- 左右切换按钮 -->
+        <button class="切换按钮 上一张">‹</button>
+        <button class="切换按钮 下一张">›</button>
+    </section>
