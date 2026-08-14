@@ -17,3 +17,21 @@
     margin:5px;
     color:blue;
 }
+
+/* 替换之前的商标样式，直接用大尺寸适配 */
+.kxmc1 .site-logo {
+    height: 60px; /* 直接放大到60px，你还可以继续改这个数值，比如改成70、80都可以 */
+    width: auto;
+    display: block;
+    margin: 5px 0;
+}
+.kxmc1 h1 {
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+header {
+    padding: 8px 20px !important; /* 给头部留出足够的上下空间，大商标不会被裁切 */
+    display: flex;
+    align-items: center; /* 让商标和右侧导航文字垂直居中对齐 */
+}
