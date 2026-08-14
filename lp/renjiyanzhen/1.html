@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人机验证 - 字符验证码</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f7fa;
+            font-family: system-ui, sans-serif;
+        }
+        .verify-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 400px;
+        }
+        .verify-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 20px;
+        }
+        .code-wrapper {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        #codeCanvas {
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+        }
+        .refresh-btn {
+            padding: 0 16px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .refresh-btn:hover {
+            background-color: #2563eb;
+        }
+        .input-group {
+            margin-bottom: 24px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #3b82f6;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #059669;
+        }
+        .tip {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #ef4444;
+            display: none;
+        }
+        .tip.success {
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="verify-container">
+        <h2 class="verify-title">请完成人机验证</h2>
+        <div class="code-wrapper">
+            <canvas id="codeCanvas" width="120" height="45"></canvas>
+            <button class="refresh-btn" id="refreshBtn">刷新</button>
+        </div>
+        <div class="input-group">
+            <input type="text" id="codeInput" placeholder="请输入验证码，不区分大小写" maxlength="4">
+        </div>
+        <button class="submit-btn" id="submitBtn">提交验证</button>
+        <div class="tip" id="tip"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('codeCanvas');
+        const ctx = canvas.getContext('2d');
+        const codeInput = document.getElementById('codeInput');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const tip = document.getElementById('tip');
+        
+        let currentCode = '';
+
+        // 生成随机验证码
+        function generateCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+            currentCode = '';
+            for (let i = 0; i < 4; i++) {
+                currentCode += chars[Math.floor(Math.random() * chars.length)];
+            }
+            drawCode();
+        }
+
+        // 绘制验证码到画布
+        function drawCode() {
+            // 清空画布
+            ctx.fillStyle = '#f0f4f8';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制干扰线
+            for (let i = 0; i < 5; i++) {
+                ctx.strokeStyle = `rgb(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255})`;
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.stroke();
+            }
+
+            // 绘制干扰点
+            for (let i = 0; i < 30; i++) {
+                ctx.fillStyle = `rgb(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255})`;
+                ctx.beginPath();
+                ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, 1, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+
+            // 绘制验证码文字
+            for (let i = 0; i < currentCode.length; i++) {
+                ctx.font = `${20 + Math.random() * 10}px Arial`;
+                ctx.fillStyle = `rgb(${Math.random()*150}, ${Math.random()*150}, ${Math.random()*150})`;
+                ctx.save();
+                ctx.translate(20 + i * 25, 30);
+                ctx.rotate((Math.random() - 0.5) * 0.4);
+                ctx.fillText(currentCode[i], 0, 0);
+                ctx.restore();
+            }
+        }
+
+        // 验证逻辑
+        function verify() {
+            const inputVal = codeInput.value.trim().toLowerCase();
+            if (inputVal === currentCode.toLowerCase()) {
+                tip.textContent = '✅ 验证成功，你是真人！';
+                tip.classList.add('success');
+                tip.style.display = 'block';
+                return true;
+            } else {
+                tip.textContent = '❌ 验证码错误，请重新输入';
+                tip.classList.remove('success');
+                tip.style.display = 'block';
+                generateCode();
+                codeInput.value = '';
+                return false;
+            }
+        }
+
+        // 事件绑定
+        canvas.addEventListener('click', generateCode);
+        refreshBtn.addEventListener('click', generateCode);
+        submitBtn.addEventListener('click', verify);
+
+        // 回车提交
+        codeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verify();
+        });
+
+        // 页面加载时生成第一个验证码
+        generateCode();
+    </script>
+</body>
+</html>

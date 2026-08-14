@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人机验证 - 滑块验证</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f7fa;
+            font-family: system-ui, sans-serif;
+        }
+        .slider-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 420px;
+        }
+        .verify-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .img-wrapper {
+            position: relative;
+            width: 360px;
+            height: 200px;
+            margin: 0 auto 20px;
+            border-radius: 8px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+        .bg-img {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .slider-track {
+            position: relative;
+            height: 44px;
+            background-color: #f1f5f9;
+            border-radius: 22px;
+            margin-top: 20px;
+        }
+        .slider-btn {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 40px;
+            height: 40px;
+            background-color: #3b82f6;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .slider-btn:active {
+            background-color: #2563eb;
+        }
+        .slider-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #64748b;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .tip {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            color: #ef4444;
+            display: none;
+        }
+        .tip.success {
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="slider-container">
+        <h2 class="verify-title">请完成滑块验证</h2>
+        <div class="img-wrapper">
+            <div class="bg-img"></div>
+            <div class="block" id="targetBlock"></div>
+        </div>
+        <div class="slider-track">
+            <div class="slider-text" id="sliderText">向右滑动完成验证</div>
+            <div class="slider-btn" id="sliderBtn">→</div>
+        </div>
+        <div class="tip" id="tip"></div>
+    </div>
+
+    <script>
+        const sliderBtn = document.getElementById('sliderBtn');
+        const sliderTrack = document.querySelector('.slider-track');
+        const sliderText = document.getElementById('sliderText');
+        const targetBlock = document.getElementById('targetBlock');
+        const tip = document.getElementById('tip');
+        
+        let isDragging = false;
+        let startX = 0;
+        let moveX = 0;
+        // 随机生成目标位置，误差允许±5px
+        const targetX = Math.floor(Math.random() * 250) + 50;
+
+        // 初始化目标方块位置
+        targetBlock.style.left = targetX + 'px';
+        targetBlock.style.top = Math.floor(Math.random() * 100) + 50 + 'px';
+
+        // 鼠标按下事件
+        sliderBtn.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            sliderBtn.style.transition = 'none';
+        });
+
+        // 鼠标移动事件
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            moveX = e.clientX - startX;
+            // 限制滑动范围
+            if (moveX < 0) moveX = 0;
+            if (moveX > sliderTrack.offsetWidth - sliderBtn.offsetWidth) {
+                moveX = sliderTrack.offsetWidth - sliderBtn.offsetWidth;
+            }
+            sliderBtn.style.left = moveX + 'px';
+            sliderText.style.opacity = 1 - moveX / 200;
+        });
+
+        // 鼠标松开事件
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            sliderBtn.style.transition = 'left 0.3s ease';
+            
+            // 判断是否在误差范围内
+            if (Math.abs(moveX - targetX) <= 5) {
+                tip.textContent = '✅ 验证成功，你是真人！';
+                tip.classList.add('success');
+                tip.style.display = 'block';
+                sliderBtn.style.backgroundColor = '#10b981';
+                sliderBtn.innerHTML = '✓';
+            } else {
+                // 验证失败，重置滑块
+                sliderBtn.style.left = '2px';
+                sliderText.style.opacity = 1;
+                tip.textContent = '❌ 验证失败，请重试';
+                tip.classList.remove('success');
+                tip.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
