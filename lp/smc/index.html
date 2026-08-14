@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML版迷你我的世界 - 带存档系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+            user-select: none;
+        }
+        body {
+            background: #87CEEB;
+            font-family: system-ui, sans-serif;
+        }
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+        .ui-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 100;
+        }
+        .save-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        .save-btn {
+            padding: 10px 14px;
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .save-btn:hover {
+            background-color: rgba(0,0,0,0.8);
+        }
+        .block-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 100;
+        }
+        .block-item {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .block-item.active {
+            border-color: white;
+            transform: scale(1.1);
+        }
+        .crosshair {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            z-index: 999;
+            pointer-events: none;
+        }
+        .crosshair::before, .crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255,255,255,0.8);
+        }
+        .crosshair::before {
+            width: 2px;
+            height: 20px;
+            left: 9px;
+            top: 0;
+        }
+        .crosshair::after {
+            width: 20px;
+            height: 2px;
+            left: 0;
+            top: 9px;
+        }
+        .tip-toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .tip-toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="ui-panel">
+        <div>WASD: 移动 | 空格: 上升 | Shift: 下降</div>
+        <div>鼠标左键: 破坏方块 | 右键: 放置方块</div>
+        <div>点击屏幕锁定鼠标控制视角</div>
+    </div>
+
+    <div class="save-panel">
+        <button class="save-btn" id="saveBtn">保存存档</button>
+        <button class="save-btn" id="loadBtn">读取存档</button>
+        <button class="save-btn" id="newWorldBtn">新建世界</button>
+        <button class="save-btn" id="exportBtn">导出存档</button>
+    </div>
+
+    <div class="tip-toast" id="tipToast"></div>
+
+    <div class="block-bar" id="blockBar"></div>
+
+    <div class="crosshair"></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const gl = canvas.getContext('webgl');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+
+        // 方块颜色配置，还原MC经典方块
+        const blockTypes = [
+            {name:'草方块', colorTop: '#7CB342', colorSide: '#8D6E63', colorBottom: '#795548'},
+            {name:'泥土', colorTop: '#795548', colorSide: '#795548', colorBottom: '#795548'},
+            {name:'石头', colorTop: '#9E9E9E', colorSide: '#9E9E9E', colorBottom: '#9E9E9E'},
+            {name:'木板', colorTop: '#A1887F', colorSide: '#A1887F', colorBottom: '#A1887F'},
+            {name:'沙子', colorTop: '#FDD835', colorSide: '#FDD835', colorBottom: '#FDD835'},
+            {name:'水', colorTop: '#2196F3', colorSide: '#2196F3', colorBottom: '#2196F3'},
+            {name:'玻璃', colorTop: '#E3F2FD', colorSide: '#E3F2FD', colorBottom: '#E3F2FD'},
+            {name:'红砖', colorTop: '#E57373', colorSide: '#E57373', colorBottom: '#E57373'},
+            {name:'叶子', colorTop: '#4CAF50', colorSide: '#4CAF50', colorBottom: '#4CAF50'},
+            {name:'钻石块', colorTop: '#4DD0E1', colorSide: '#4DD0E1', colorBottom: '#4DD0E1'}
+        ];
+        let currentBlockType = 0;
+
+        // 初始化方块选择栏
+        const blockBar = document.getElementById('blockBar');
+        blockTypes.forEach((block, index) => {
+            const item = document.createElement('div');
+            item.className = `block-item ${index === 0 ? 'active' : ''}`;
+            item.style.backgroundColor = block.colorTop;
+            item.onclick = () => {
+                document.querySelectorAll('.block-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                currentBlockType = index;
+            };
+            blockBar.appendChild(item);
+        });
+
+        // 世界数据参数
+        const WORLD_SIZE = 32;
+        const WORLD_HEIGHT = 16;
+        let world = new Uint8Array(WORLD_SIZE * WORLD_SIZE * WORLD_HEIGHT);
+        
+        // 生成随机自然地形
+        function generateNewWorld() {
+            for(let x = 0; x < WORLD_SIZE; x++) {
+                for(let z = 0; z < WORLD_SIZE; z++) {
+                    // 随机地形高度
+                    const height = 3 + Math.floor(Math.sin(x*0.2) * 2 + Math.cos(z*0.2) * 2);
+                    for(let y = 0; y < height - 2; y++) {
+                        world[x + z * WORLD_SIZE + y * WORLD_SIZE * WORLD_SIZE] = 2; // 底层石头
+                    }
+                    world[x + z * WORLD_SIZE + (height-2) * WORLD_SIZE * WORLD_SIZE] = 1; // 泥土层
+                    world[x + z * WORLD_SIZE + (height-1) * WORLD_SIZE * WORLD_SIZE] = 0; // 顶层草方块
+                }
+            }
+        }
+
+        // 玩家位置和视角
+        let playerPos = [WORLD_SIZE/2, 10, WORLD_SIZE/2];
+        let yaw = 0; // 水平旋转角
+        let pitch = 0; // 上下旋转角
+        const keys = {};
+
+        // 提示弹窗工具
+        function showTip(msg) {
+            const toast = document.getElementById('tipToast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // 存档系统核心逻辑
+        const SAVE_KEY = 'minecraft_html_save_v1';
+        // 保存存档
+        function saveGame() {
+            const saveData = {
+                world: Array.from(world),
+                playerPos: playerPos,
+                yaw: yaw,
+                pitch: pitch,
+                saveTime: new Date().toISOString()
+            };
+            localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+            showTip(`✅ 存档保存成功！保存时间：${new Date().toLocaleTimeString()}`);
+        }
+
+        // 读取存档
+        function loadGame() {
+            const saveStr = localStorage.getItem(SAVE_KEY);
+            if(!saveStr) {
+                showTip('❌ 没有找到已保存的存档');
+                return false;
+            }
+            try {
+                const saveData = JSON.parse(saveStr);
+                if(saveData.world.length !== world.length) {
+                    showTip('⚠️ 存档版本不兼容，已生成新世界');
+                    generateNewWorld();
+                    return false;
+                }
+                world = new Uint8Array(saveData.world);
+                playerPos = saveData.playerPos || [WORLD_SIZE/2, 10, WORLD_SIZE/2];
+                yaw = saveData.yaw || 0;
+                pitch = saveData.pitch || 0;
+                showTip('✅ 存档加载成功，恢复你的建筑进度！');
+                return true;
+            } catch (e) {
+                showTip('❌ 存档损坏，无法读取');
+                generateNewWorld();
+                return false;
+            }
+        }
+
+        // 导出存档为文本文件
+        function exportSave() {
+            const saveStr = localStorage.getItem(SAVE_KEY);
+            if(!saveStr) {
+                showTip('❌ 没有可导出的存档');
+                return;
+            }
+            const blob = new Blob([saveStr], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `mc存档_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showTip('✅ 存档文件已下载');
+        }
+
+        // 绑定存档按钮事件
+        document.getElementById('saveBtn').addEventListener('click', saveGame);
+        document.getElementById('loadBtn').addEventListener('click', loadGame);
+        document.getElementById('newWorldBtn').addEventListener('click', () => {
+            if(confirm('确定要新建世界吗？当前未保存的进度会丢失！')) {
+                generateNewWorld();
+                playerPos = [WORLD_SIZE/2, 10, WORLD_SIZE/2];
+                showTip('✅ 新的随机世界已生成！');
+            }
+        });
+        document.getElementById('exportBtn').addEventListener('click', exportSave);
+
+        // 页面加载自动读取存档
+        window.addEventListener('load', () => {
+            if(!loadGame()) generateNewWorld();
+        });
+
+        // 自动存档：离开页面前自动保存一次
+        window.addEventListener('beforeunload', saveGame);
+
+        // 鼠标控制锁定
+        canvas.addEventListener('click', () => {
+            canvas.requestPointerLock();
+        });
+        document.addEventListener('mousemove', (e) => {
+            if(document.pointerLockElement === canvas) {
+                yaw -= e.movementX * 0.002;
+                pitch -= e.movementY * 0.002;
+                pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch));
+            }
+        });
+
+        // 键盘事件
+        document.addEventListener('keydown', e => keys[e.code] = true);
+        document.addEventListener('keyup', e => keys[e.code] = false);
+
+        // 鼠标点击放置/破坏方块
+        canvas.addEventListener('mousedown', e => {
+            const dir = [
+                Math.cos(pitch) * -Math.sin(yaw),
+                Math.sin(pitch),
+                Math.cos(pitch) * Math.cos(yaw)
+            ];
+            // 光线检测寻找前方方块
+            let rayPos = [...playerPos];
+            for(let i = 0; i < 6; i++) {
+                rayPos[0] += dir[0] * 0.5;
+                rayPos[1] += dir[1] * 0.5;
+                rayPos[2] += dir[2] * 0.5;
+                const bx = Math.floor(rayPos[0]);
+                const by = Math.floor(rayPos[1]);
+                const bz = Math.floor(rayPos[2]);
+                if(bx >=0 && bx < WORLD_SIZE && by >=0 && by < WORLD_HEIGHT && bz >=0 && bz < WORLD_SIZE) {
+                    const idx = bx + bz*WORLD_SIZE + by * WORLD_SIZE * WORLD_SIZE;
+                    if(world[idx] !== 0) {
+                        if(e.button === 0) world[idx] = 0; // 左键破坏
+                        if(e.button === 2) {
+                            const prevPos = [
+                                Math.floor(playerPos[0] + dir[0] * (i-0.5)),
+                                Math.floor(playerPos[1] + dir[1] * (i-0.5)),
+                                Math.floor(playerPos[2] + dir[2] * (i-0.5))
+                            ];
+                            if(prevPos[0] >=0 && prevPos[0] < WORLD_SIZE && prevPos[1] >=0 && prevPos[1] < WORLD_HEIGHT && prevPos[2] >=0 && prevPos[2] < WORLD_SIZE) {
+                                const newIdx = prevPos[0] + prevPos[2]*WORLD_SIZE + prevPos[1] * WORLD_SIZE * WORLD_SIZE;
+                                world[newIdx] = currentBlockType + 1; // 右键放置
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        });
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        // WebGL工具函数
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            return shader;
+        }
+        const vs = `
+            attribute vec3 aPos;
+            attribute vec3 aColor;
+            uniform mat4 uProjection;
+            varying vec3 vColor;
+            void main() {
+                gl_Position = uProjection * vec4(aPos, 1.0);
+                vColor = aColor;
+            }
+        `;
+        const fs = `
+            precision mediump float;
+            varying vec3 vColor;
+            void main() {
+                gl_FragColor = vec4(vColor, 1.0);
+            }
+        `;
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vs);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fs);
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        gl.useProgram(program);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        const aPos = gl.getAttribLocation(program, 'aPos');
+        gl.enableVertexAttribArray(aPos);
+        gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 24, 0);
+        const aColor = gl.getAttribLocation(program, 'aColor');
+        gl.enableVertexAttribArray(aColor);
+        gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 24, 12);
+        const uProjection = gl.getUniformLocation(program, 'uProjection');
+
+        // 生成方块顶点
+        const vertices = [];
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16)/255,
+                g: parseInt(result[2], 16)/255,
+                b: parseInt(result[3], 16)/255
+            } : {r:1,g:1,b:1};
+        }
+        const addFace = (x,y,z, color1, color2) => {
+            const c1 = hexToRgb(color1);
+            const c2 = hexToRgb(color2);
+            // 6个面的顶点数据
+            vertices.push(
+                // 前面
+                x,y+1,z+1, c2.r,c2.g,c2.b,
+                x+1,y+1,z+1, c2.r,c2.g,c2.b,
+                x+1,y,z+1, c2.r,c2.g,c2.b,
+                x,y,z+1, c2.r,c2.g,c2.b,
+                // 后面
+                x+1,y+1,z, c2.r,c2.g,c2.b,
+                x,y+1,z, c2.r,c2.g,c2.b,
+                x,y,z, c2.r,c2.g,c2.b,
+                x+1,y,z, c2.r,c2.g,c2.b,
+                // 上面
+                x,y+1,z+1, c1.r,c1.g,c1.b,
+                x,y+1,z, c1.r,c1.g,c1.b,
+                x+1,y+1,z, c1.r,c1.g,c1.b,
+                x+1,y+1,z+1, c1.r,c1.g,c1.b,
+                // 下面
+                x,y,z, c2.r,c2.g,c2.b,
+                x,y,z+1, c2.r,c2.g,c2.b,
+                x+1,y,z+1, c2.r,c2.g,c2.b,
+                x+1,y,z, c2.r,c2.g,c2.b,
+                // 左面
+                x,y+1,z, c2.r,c2.g,c2.b,
+                x,y+1,z+1, c2.r,c2.g,c2.b,
+                x,y,z+1, c2.r,c2.g,c2.b,
+                x,y,z, c2.r,c2.g,c2.b,
+                // 右面
+                x+1,y+1,z+1, c2.r,c2.g,c2.b,
+                x+1,y+1,z, c2.r,c2.g,c2.b,
+                x+1,y,z, c2.r,c2.g,c2.b,
+                x+1,y,z+1, c2.r,c2.g,c2.b
+            );
+        };
+
+        // 矩阵工具函数
+        function perspective(fov, aspect, near, far) {
+            const f = 1.0 / Math.tan(fov / 2);
+            return new Float32Array([
+                f / aspect, 0, 0, 0,
+                0, f, 0, 0,
+                0, 0, (far + near) / (near - far), -1,
+                0, 0, (2 * far * near) / (near - far), 0
+            ]);
+        }
+        function multiplyMat4(a, b) {
+            const result = new Float32Array(16);
+            for(let i=0;i<4;i++) {
+                for(let j=0;j<4;j++) {
+                    result[i*4+j] = a[i*4+0]*b[0*4+j] + a[i*4+1]*b[1*4+j] + a[i*4+2]*b[2*4+j] + a[i*4+3]*b[3*4+j];
+                }
+            }
+            return result;
+        }
+        function translate(m, v) {
+            const out = new Float32Array(m);
+            out[12] = m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12];
+            out[13] = m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13];
+            out[14] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14];
+            out[15] = m[3] * v[0] + m[7] * v[1] + m[11] * v[2] + m[15];
+            return out;
+        }
+        function rotateY(m, angle) {
+            const out = new Float32Array(m);
+            const c = Math.cos(angle);
+            const s = Math.sin(angle);
+            const a00 = m[0], a01 = m[1], a02 = m[2], a03 = m[3];
+            const a20 = m[8], a21 = m[9], a22 = m[10], a23 = m[11];
+            out[0] = a00 * c + a20 * (-s);
+            out[1] = a01 * c + a21 * (-s);
+            out[2] = a02 * c + a22 * (-s);
+            out[3] = a03 * c + a23 * (-s);
+            out[8] = a00 * s + a20 * c;
+            out[9] = a01 * s + a21 * c;
+            out[10] = a02 * s + a22 * c;
+            out[11] = a03 * s + a23 * c;
+            return out;
+        }
+        function rotateX(m, angle) {
+            const out = new Float32Array(m);
+            const c = Math.cos(angle);
+            const s = Math.sin(angle);
+            const a10 = m[4], a11 = m[5], a12 = m[6], a13 = m[7];
+            const a20 = m[8], a21 = m[9], a22 = m[10], a23 = m[11];
+            out[4] = a10 * c + a20 * s;
+            out[5] = a11 * c + a21 * s;
+            out[6] = a12 * c + a22 * s;
+            out[7] = a13 * c + a23 * s;
+            out[8] = a20 * c - a10 * s;
+            out[9] = a21 * c - a11 * s;
+            out[10] = a22 * c - a12 * s;
+            out[11] = a23 * c - a13 * s;
+            return out;
+        }
+
+        // 游戏主循环
+        function render() {
+            // 玩家移动逻辑
+            const speed = 0.12;
+            if(keys['KeyW']) {
+                playerPos[0] -= Math.sin(yaw) * speed;
+                playerPos[2] += Math.cos(yaw) * speed;
+            }
+            if(keys['KeyS']) {
+                playerPos[0] += Math.sin(yaw) * speed;
+                playerPos[2] -= Math.cos(yaw) * speed;
+            }
+            if(keys['KeyA']) {
+                playerPos[0] -= Math.cos(yaw) * speed;
+                playerPos[2] -= Math.sin(yaw) * speed;
+            }
+            if(keys['KeyD']) {
+                playerPos[0] += Math.cos(yaw) * speed;
+                playerPos[2] += Math.sin(yaw) * speed;
+            }
+            if(keys['Space']) playerPos[1] += speed;
+            if(keys['ShiftLeft']) playerPos[1] -= speed;
+
+            // 生成所有方块顶点
+            vertices.length = 0;
+            for(let x = 0; x < WORLD_SIZE; x++) {
+                for(let y = 0; y < WORLD_HEIGHT; y++) {
+                    for(let z = 0; z < WORLD_SIZE; z++) {
+                        const idx = x + z*WORLD_SIZE + y * WORLD_SIZE * WORLD_SIZE;
+                        const type = world[idx];
+                        if(type > 0) {
+                            const block = blockTypes[type-1];
+                            // 只渲染暴露在外的面，大幅优化性能
+                            let isExposed = false;
+                            // 检测6个方向是否为空气
+                            if( (x+1 >= WORLD_SIZE || world[idx+1] === 0) ||
+                                (x-1 < 0 || world[idx-1] === 0) ||
+                                (y+1 >= WORLD_HEIGHT || world[idx + WORLD_SIZE*WORLD_SIZE] === 0) ||
+                                (y-1 < 0 || world[idx - WORLD_SIZE*WORLD_SIZE] === 0) ||
+                                (z+1 >= WORLD_SIZE || world[idx + WORLD_SIZE] === 0) ||
+                                (z-1 < 0 || world[idx - WORLD_SIZE] === 0)) {
+                                addFace(x,y,z, block.colorTop, block.colorSide);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 上传顶点数据
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+            
+            // 生成投影视图矩阵
+            let projMatrix = perspective(Math.PI/3, canvas.width/canvas.height, 0.1, 100);
+            let viewMatrix = new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+            viewMatrix = rotateY(viewMatrix, yaw);
+            viewMatrix = rotateX(viewMatrix, pitch);
+            viewMatrix = translate(viewMatrix, [-playerPos[0], -playerPos[1], -playerPos[2]]);
+            const finalMatrix = multiplyMat4(projMatrix, viewMatrix);
+            
+            gl.uniformMatrix4fv(uProjection, false, finalMatrix);
+            gl.clearColor(0.53, 0.81, 0.92, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            // 绘制所有方块
+            gl.drawArrays(gl.QUADS, 0, vertices.length / 6);
+            
+            requestAnimationFrame(render);
+        }
+
+        // 窗口大小自适应
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        });
+
+        // 启动游戏
+        render();
+    </script>
+</body>
+</html>
