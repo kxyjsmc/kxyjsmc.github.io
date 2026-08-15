@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字符串提交系统</title>
+    <!-- 引入 Supabase 客户端库 -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.2/+esm';
+
+        // 初始化 Supabase 客户端（替换为你的密钥）
+        const SUPABASE_URL = 'https://aonoebeajppbziyzucsm.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_AKUMJeqzjC-LPEng6iWR_A_hMg2GT_J';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 提交函数
+        async function submitString() {
+            const username = document.getElementById('username').value.trim();
+            const content = document.getElementById('content').value.trim();
+            const messageElement = document.getElementById('message');
+
+            // 验证输入
+            if (!username || !content) {
+                showMessage('用户名和内容不能为空！', 'error');
+                return;
+            }
+
+            try {
+                // 提交数据到 Supabase
+                const { error } = await supabase.from('submissions').insert([{ username, content }]);
+                if (error) throw error;
+
+                // 提交成功
+                showMessage('提交成功！', 'success');
+                document.getElementById('content').value = ''; // 清空内容
+            } catch (error) {
+                showMessage('提交失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(text, type) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = text;
+            messageElement.className = `message ${type}`;
+        }
+
+        // 绑定事件（确保 DOM 加载完成）
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('submitBtn').onclick = submitString;
+        });
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #3B82F6; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #2563EB; }
+        .message { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .message.success { background: #dcfce7; color: #166534; }
+        .message.error { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    <h1>提交字符串</h1>
+    <div class="form-group">
+        <label for="username">用户名:</label>
+        <input type="text" id="username" placeholder="输入你的用户名">
+    </div>
+    <div class="form-group">
+        <label for="content">字符串内容:</label>
+        <textarea id="content" rows="5" placeholder="输入要提交的字符串"></textarea>
+    </div>
+    <div class="text1">
+* 字符串变为空代表已提交
+    </div>
+    <button id="submitBtn">提交</button>
+    <div id="message"></div>
+</body>
+</html>
