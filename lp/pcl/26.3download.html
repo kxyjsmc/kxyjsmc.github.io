@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PCL 下载</title>
+    <meta
+      name="description"
+      content="简洁的 MC 下载站，提供最新版本下载与安装说明。"
+    />
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: rgba(255, 255, 255, 0.9);
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: rgba(148, 163, 184, 0.2);
+        --success: #10b981;
+        --shadow: 0 20px 50px rgba(37, 99, 235, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 38%),
+          radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.08), transparent 30%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+      }
+
+      .wrap {
+        width: min(100%, 760px);
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 24px;
+        backdrop-filter: blur(12px);
+        padding: 32px 28px 24px;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: var(--primary-dark);
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.12);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+      }
+
+      .sub {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1.7;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 28px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 52px;
+        padding: 0 24px;
+        border-radius: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        color: #fff;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+      }
+
+      .btn-secondary {
+        color: var(--text);
+        background: rgba(148, 163, 184, 0.08);
+        border: 1px solid var(--border);
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 28px;
+      }
+
+      .item {
+        background: rgba(148, 163, 184, 0.04);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px 18px;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+
+      .value {
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+
+      .footer {
+        margin-top: 28px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.8;
+      }
+
+      .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+
+      @media (max-width: 640px) {
+        .card {
+          padding: 24px 18px 18px;
+        }
+
+        .top {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .meta {
+          grid-template-columns: 1fr;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div class="top">
+          <div>
+            <div class="tag">PCL / 下载中心 / MC版本 / 26.3 原版</div>
+          </div>
+        </div>
+
+        <h1>下载 MC</h1>
+        <p class="sub">
+          26.3 原版<br>
+          下载说明:<br>
+          step 1:<br>
+          将下载的文件解压缩后放入文件夹 .minecraft / versions  中<br>
+          step 2:<br>
+          启动pcl<br>
+          step 3:<br>
+          选择26.3原版 启动即可(pcl会自动补全文件)<br>
+
+        </p>
+
+        <div class="actions">
+          <a class="btn btn-primary" href="./26.3 o.zip" download>立即下载</a>
+        </div>
+
+        <div class="meta">
+          <div class="item">
+            <div class="label">适用平台</div>
+            <div class="value">Windows</div>
+          </div>
+          <div class="item">
+            <div class="label">版本类型</div>
+            <div class="value">正式版</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </body>
+</html>
