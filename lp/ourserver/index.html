@@ -1,110 +1,141 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KXMC 服务器主页，提供服务器信息、指令、法律说明与更新公告。">
     <title>KXMC - kxyjsmc服务器</title>
     <link rel="stylesheet" href="https://kxyjs.8044321.xyz/style.css">
     <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
     <header>
-
-        <button class="menu">&#9776;</button>
-        <section class="kxmc1">
-                <!-- 把原来的<h1>KXMC</h1> 替换为商标图片，保留外层h1标签不破坏原有CSS样式，点击还能返回首页 -->
+        <div class="header-inner">
+            <button class="menu" aria-label="打开导航菜单">&#9776;</button>
+            <section class="kxmc1">
                 <h1>
                     <a href="index.html">
                         <img src="img/kxmc.jpg" alt="KXMC服务器商标" class="site-logo">
                     </a>
                 </h1>
-        </section>
-        <nav>
-
-            <ul>
-                <li><a href="index.html"> 首页 </a></li>
-                <li><a href="code1.html"> 指令(必修) </a></li>
-                <li><a href="train1.html">铁路站点</a></li>
-                <li><a href="laws.html"> 法律(这样你才不会被ban) </a></li>
-            </ul>
-        </nav>
+            </section>
+            <nav class="main-nav" aria-label="主导航">
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="code1.html">指令(必修)</a></li>
+                    <li><a href="laws.html">法律(这样你才不会被ban)</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
-    <main>
 
- 
-
-        <section class="main">
-
-<h1> KXMC的基本信息：</h1>
-
-1.目前版本：java26.2<br>
-<br>
-2.服务器地址：gm.rainplay.cn:26732  <br>
-3.plugins（服务端插件）: <br>
-BlockLocker(给箱子上锁)<br>
-CMILib(某插件的前置插件)<br>
-Essentials(经济插件)<br>
-iShop(木桶商店)<br>
-LoginPlus(登录系统)<br>
-Residence(领地插件)<br>
-Luckperms(权限插件)<br>
-
-        	加入KXMC服务器：<br>
-1.注册一个账号<br>
-1）加入服务器（输入地址）<br>
-2）看到满屏的字之后，输入/reg 密码 重复密码<br>
-(后续可以用/login 密码  来登录)<br>
-3）开始游玩吧！<br>
-        </section>
-        <section class="news">
-			<h1>KXMC公告</h1>
-
-            <br><!-- 分割线 -->
-
+    <main class="page-main">
+        <section class="hero">
+            <h1 class="hero-title">KXMC 服务器</h1>
+            <p class="hero-subtitle">欢迎来到 KXMC，快来查看服务器信息、玩法指令与管理规则吧！</p>
         </section>
 
-        <section class="记录">
-			<h1>KXMC状态</h1>
-            2026/8/11 端口更新:  因接口原因，20268端口暂时关闭</br>
+        <section class="card main">
+            <h1>KXMC 的基本信息</h1>
+            <ul class="info-list">
+                <li>目前版本：Java 26.3</li>
+                <li>服务器地址：zjd.rainplay.cn:26732</li>
+                <li>插件列表：BlockLocker、CMILib、Essentials、iShop、LoginPlus、Residence、LuckPerms</li>
+            </ul>
 
-			2026/8/9  端口更新:  [1.]gm.rainplay.cn:26732   [2.]gm.rainplay.cn:20268<br>
-<br>
-<br>
-<br>
-            <br><!-- 分割线 -->
-
-        </section>
-        <section class="记录">
-			<h1>KXMC已登记玩家(大号)</h1>
-			[kxyjs_mc][op]<br>
-			[Eason]<br>
-			[Gao][op]<br>
-			[zhxbhs]<br>
-			[i2symnc][op]<br>
-			[netpass][op]<br>
-            [SSS]<br>
-            [user13697891]<br>
-
-            <br><!-- 分割线 -->
-
+            <h2>加入 KXMC 服务器</h2>
+            <ol>
+                <li>注册一个账号</li>
+                <li>加入服务器，输入地址</li>
+                <li>看到满屏字后，输入 /reg 密码 重复密码</li>
+                <li>之后使用 /login 密码 登录即可开始游玩</li>
+            </ol>
         </section>
 
+        <section class="card status-card" aria-live="polite">
+            <div class="status-header">
+                <h1>服务器状态</h1>
+                <span id="server-status-badge" class="status-badge">检查中...</span>
+            </div>
+
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">在线人数</span>
+                    <strong id="server-players">0 / 0</strong>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">服务器版本</span>
+                    <strong id="server-version">加载中...</strong>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">延迟</span>
+                    <strong id="server-latency">检测中...</strong>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">人数趋势</span>
+                    <strong id="server-trend">待更新...</strong>
+                </div>
+                <div class="status-item full-width">
+                    <span class="status-label">服务器地址</span>
+                    <strong id="server-address">zjd.rainplay.cn:26732</strong>
+                </div>
+            </div>
+
+            <div class="player-list-panel">
+                <div class="player-list-header">
+                    <h2>在线玩家列表</h2>
+                    <div class="player-list-tools">
+                        <span id="player-count-badge">0 人在线</span>
+                        <button id="refresh-status-btn" class="refresh-status-btn" type="button" aria-label="刷新服务器状态">↻ 刷新</button>
+                    </div>
+                </div>
+                <ul id="online-player-list" class="online-player-list">
+                    <li>正在获取在线玩家信息...</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="card news">
+            <h1>KXMC 公告</h1>
+            <p>服务器正在稳定更新中，欢迎新老玩家一起交流和探索。</p>
+        </section>
+
+        <section class="card 记录">
+            <h1>KXMC 状态</h1>
+            <ul class="status-list">
+                <li>2026/11/04：服务器已更新至 zjd.rainplay.cn:26732</li>
+                <li>2026/8/11：端口更新，因接口原因，20268 端口暂时关闭</li>
+                <li>2026/8/9：端口更新：[1.] gm.rainplay.cn:26732  [2.] gm.rainplay.cn:20268</li>
+            </ul>
+        </section>
+
+        <section class="card 记录">
+            <h1>KXMC 已登记玩家</h1>
+            <ul class="player-list">
+                <li>[kxyjs_mc][op]</li>
+                <li>[Eason]</li>
+                <li>[Gao][op]</li>
+                <li>[zhxbhs]</li>
+                <li>[i2symnc][op]</li>
+                <li>[netpass][op]</li>
+                <li>[SSS]</li>
+                <li>[user13697891]</li>
+                <li>[hamer]</li>
+            </ul>
+        </section>
 
         <section class="slogan">
-
-            <h2>
-                <blockquote cite="https://kxyjs.8044321.xyz"> “happy every day<br> 开心每一天”</blockquote><br>
-            </h2>
-
+            <blockquote cite="https://kxyjs.8044321.xyz">“happy every day<br>开心每一天”</blockquote>
         </section>
     </main>
-    <footer>
 
-        <p>Copyright  2026 开心研究所 All Rights Reserved.<br> 【v17.4.5】</p>
+    <footer>
+        <p>Copyright 2026 开心研究所 All Rights Reserved.<br>【v17.4.5】</p>
     </footer>
+
+    <script src="script.js"></script>
 </body>
 
 </html>

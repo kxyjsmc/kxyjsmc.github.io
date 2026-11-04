@@ -1,61 +1,99 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KXMC 服务器规则与处罚说明页。">
     <title>KXMC - kxyjsmc服务器</title>
     <link rel="stylesheet" href="https://kxyjs.8044321.xyz/style.css">
     <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
     <header>
-
-        <button class="menu">&#9776;</button>
-        <section class="kxmc1">
-                <!-- 把原来的<h1>KXMC</h1> 替换为商标图片，保留外层h1标签不破坏原有CSS样式，点击还能返回首页 -->
+        <div class="header-inner">
+            <button class="menu" aria-label="打开导航菜单">&#9776;</button>
+            <section class="kxmc1">
                 <h1>
                     <a href="index.html">
                         <img src="img/kxmc.jpg" alt="KXMC服务器商标" class="site-logo">
                     </a>
                 </h1>
-        </section>
-        <nav>
-
-            <ul>
-                <li><a href="index.html"> 首页 </a></li>
-                <li><a href="code1.html"> 指令(必修) </a></li>
-                <li><a href="train1.html">铁路站点</a></li>
-                <li><a href="laws.html"> 法律(这样你才不会被ban) </a></li>
-            </ul>
-        </nav>
+            </section>
+            <nav class="main-nav" aria-label="主导航">
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="code1.html">指令(必修)</a></li>
+                    <li><a href="laws.html">法律(这样你才不会被ban)</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
-    <main>
 
-        <section class="main">
-            编号|适用范围(玩家)|法律细则|违反处理<br>
-            1.[op][非op] 服务器中使用了"领地"插件,你可以很方便的圈地,未被圈的地你可以随便熊,但禁止熊公益设施[如:地铁,公益刷铁机,公益刷怪塔] ban 5天起<br>
-            2.[op] 禁止在服务器使用投影mod(需提前申请或kxyjs_mc在场) 被发现 ban 4天起,造成重大影响 ban 10天起<br>
-            3.[op][非op] 禁止使用作弊mod(除:正常光影,小地图) ban 5天起<br>
-            4.[op][非op] 禁止使用技术手段攻击服务器(包括但不限于:DDos)/卡服(使用大规模红石) ip-ban 5+5*服务器被影响天数*服务器被影响总玩家数<br>
-            5.[op] 禁止使用ai生成的指令 ban 5天起<br>
-            6.[]<br> 
-
+    <main class="page-main">
+        <section class="card main">
+            <h1>服务器规则</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>适用范围</th>
+                        <th>法律细则</th>
+                        <th>违反处理</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>[op][非op]</td>
+                        <td>服务器中使用了“领地”插件，可以方便圈地；未被圈地可以随便挖，但禁止破坏公益设施，如地铁、公益刷铁机、公益刷怪塔。</td>
+                        <td>Ban 5 天起</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>[op]</td>
+                        <td>禁止在服务器使用投影 mod（需提前申请或 kxyjs_mc 在场）</td>
+                        <td>被发现 Ban 4 天起，造成重大影响 Ban 10 天起</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>[op][非op]</td>
+                        <td>禁止使用作弊 mod（除正常光影和小地图）</td>
+                        <td>Ban 5 天起</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>[op][非op]</td>
+                        <td>禁止使用技术手段攻击服务器，包括但不限于 DDos / 卡服（如 使用大规模红石）</td>
+                        <td>IP Ban 5+5×服务器被影响天数×服务器被影响总玩家数</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>[op]</td>
+                        <td>禁止使用 AI 生成的指令</td>
+                        <td>Ban 5 天起</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>[]</td>
+                        <td>待补充</td>
+                        <td>待定</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
+
         <section class="slogan">
-
-            <h2>
-                <blockquote cite="https://kxyjs.8044321.xyz"> “happy every day<br> 开心每一天”</blockquote><br>
-            </h2>
-
+            <blockquote cite="https://kxyjs.8044321.xyz">“happy every day<br>开心每一天”</blockquote>
         </section>
     </main>
-    <footer>
 
-        <p>Copyright  2026 开心研究所 All Rights Reserved.<br> 【v17.4.5】</p>
+    <footer>
+        <p>Copyright 2026 开心研究所 All Rights Reserved.<br>【v17.4.5】</p>
     </footer>
+
+    <script src="script.js"></script>
 </body>
 
 </html>
